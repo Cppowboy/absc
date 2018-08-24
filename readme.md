@@ -23,8 +23,8 @@ python -m lstm.main --mode test
 
 ## Experiment Result
 
-| Model | Restaurant(aspect category) | Restaurant(aspect term) | Laptop(aspect term) |
-| - | - | - |
+| Models | Restaurant_category | Restaurant | Laptop |
+| ------ | :-----------: | -----:| -----: |
 | lstm | 82.73 | 75.00 | 66.93 |
 | atae_lstm | 83.86 | 78.39 | 69.75 |
 | acsa_gcae | 82.53 | 78.84 | 71.63 |

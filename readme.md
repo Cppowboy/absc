@@ -30,7 +30,7 @@ python -m lstm.main --mode test
 | acsa_gcae | 82.53 | 78.84 | 71.63 |
 | bilstm_att_g | - | 80.39 | 73.09 |
 | acsa_gcae_g | - | 79.85 | 73.58 |
-| tnet | - | 79.85 | 76.54 |
+| tnet | - | 80.17 | 77.04 |
 
 ## Direcotory
 

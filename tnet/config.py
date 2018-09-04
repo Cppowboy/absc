@@ -28,6 +28,7 @@ flags.DEFINE_integer('aspect_limit', 5, 'max length of')
 # save params
 flags.DEFINE_string('log_save', 'logs', 'save the events in this directory')
 flags.DEFINE_string('model_save', 'ckt', 'save the models in this directory')
+flags.DEFINE_string('result_save', 'result', 'save result here')
 flags.DEFINE_string('timestr', datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
                     'time str of current time, %Y%m%d%H%M%S')
 # train params

@@ -10,6 +10,28 @@ from tensorboardX import SummaryWriter
 from absl import app
 import os
 from tqdm import tqdm
+import json
+
+
+def save(sent_ids, lens, aspect_ids, alens, polarity, logits, fout, config):
+    def parse_sent(ids, l, dic):
+        token_list = []
+        for i in range(l):
+            if ids[i] in dic:
+                token_list.append(dic[ids[i]])
+            else:
+                token_list.append(dic[0])
+        return ' '.join(token_list)
+
+    polarity_list = ['negative', 'neutral', 'positive']
+    data_dir = os.path.join(config.model, config.dataset)
+    word2id = json.load(open(os.path.join(data_dir, config.word2id_file), 'r'))
+    id2word = {v: k for k, v in word2id.items()}
+    for sid, l, aid, al, p, logit in zip(sent_ids, lens, aspect_ids, alens, polarity, logits):
+        print(parse_sent(sid, l, id2word), file=fout)
+        print(parse_sent(aid, al, id2word), file=fout)
+        print(polarity_list[p], file=fout)
+        print(['{}:{}'.format(t, p) for t, p in zip(polarity_list, logit)], file=fout)
 
 
 def train(config):
@@ -38,11 +60,15 @@ def train(config):
     model_save_dir = os.path.join(config.model_save, config.dataset, config.model)
     if not os.path.exists(model_save_dir):
         os.makedirs(model_save_dir)
-    parameters = filter(lambda p:p.requires_grad, model.parameters())
+    result_dir = os.path.join(config.result_save, config.dataset, config.model, 'train')
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    parameters = filter(lambda p: p.requires_grad, model.parameters())
     optim = torch.optim.Adam(parameters, lr=config.lr, weight_decay=config.weight_decay)
     best_acc = 0.0
     for epoch in tqdm(range(config.max_epoch)):
         # train
+        save_fout = open(os.path.join(result_dir, '{}.txt'.format(epoch)), 'w')
         model.train()
         for i, batch_data in tqdm(enumerate(train_data)):
             model.zero_grad()
@@ -50,6 +76,8 @@ def train(config):
             sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
                 device), pws.to(device)
             logit = model(sent_ids, aspect_ids, pws)
+            save(sent_ids.tolist(), lens.tolist(), aspect_ids.tolist(), aspect_lens.tolist(), polarity.tolist(),
+                 logit.tolist(), save_fout, config)
             loss = cross_entropy(logit, polarity)
             writer.add_scalar('loss', loss, len(train_data) * epoch + i)
             loss.backward()
@@ -122,6 +150,10 @@ def test(config):
                  device=device)
     # load model
     model_save_dir = os.path.join(config.model_save, config.dataset, config.model)
+    result_dir = os.path.join(config.result_save, config.dataset, config.model, 'test')
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    save_fout = open(os.path.join(result_dir, 'best.txt'), 'w')
     model.load_state_dict(torch.load(os.path.join(model_save_dir, 'best.pth')))
     model = model.to(device)
     model.eval()
@@ -133,6 +165,8 @@ def test(config):
         sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
             device), pws.to(device)
         logit = model(sent_ids, aspect_ids, pws)
+        save(sent_ids.tolist(), lens.tolist(), aspect_ids.tolist(), aspect_lens.tolist(), polarity.tolist(),
+             logit.tolist(), save_fout, config)
         logit_list.append(logit.cpu().data.numpy())
         rating_list.append(polarity.cpu().data.numpy())
     test_acc, test_precision, test_recall, test_f1 = get_score(np.concatenate(logit_list, 0),

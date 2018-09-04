@@ -24,11 +24,11 @@ def read_category(fname, wordcounter, targetcounter):
     root = tree.getroot()
     data_list = []
     for sentence in tqdm(root.findall('sentence')):
-        txt = sentence.find('text').text.lower()
+        txt = sentence.find('text').text.lower().strip()
         words = word_tokenize(txt)
         aspects = sentence.find('aspectCategories')
         for aspect in aspects.findall('aspectCategory'):
-            a = aspect.get('category')
+            a = aspect.get('category').lower().strip()
             if '/' in a:
                 a = a.split('/')[-1]
             p = aspect.get('polarity')
@@ -63,11 +63,11 @@ def read_term(fname, wordcounter, targetcounter):
     data_list = []
     for sentence in tqdm(root.findall('sentence')):
         try:
-            txt = sentence.find('text').text.lower()
+            txt = sentence.find('text').text.lower().strip()
             words = word_tokenize(txt)
             aspects = sentence.find('aspectTerms')
             for aspect in aspects.findall('aspectTerm'):
-                a = aspect.get('term')
+                a = aspect.get('term').lower().strip()
                 if '/' in a:
                     a = a.split('/')[-1]
                 p = aspect.get('polarity')

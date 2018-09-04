@@ -18,10 +18,10 @@ def read_seperate(fname, wordcounter, targetcounter):
     data_list = []
     for sentence in root.findall('sentence'):
         try:
-            txt = sentence.find('text').text.lower()
+            txt = sentence.find('text').text.lower().strip()
             aspects = sentence.find('aspectTerms')
             for aspect in aspects.findall('aspectTerm'):
-                a = aspect.get('term')
+                a = aspect.get('term').lower().strip()
                 if '/' in a:
                     a = a.split('/')[-1]
                 p = aspect.get('polarity')

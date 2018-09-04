@@ -38,7 +38,8 @@ def train(config):
     model_save_dir = os.path.join(config.model_save, config.dataset, config.model)
     if not os.path.exists(model_save_dir):
         os.makedirs(model_save_dir)
-    optim = torch.optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
+    parameters = filter(lambda p:p.requires_grad, model.parameters())
+    optim = torch.optim.Adam(parameters, lr=config.lr, weight_decay=config.weight_decay)
     best_acc = 0.0
     for epoch in tqdm(range(config.max_epoch)):
         # train

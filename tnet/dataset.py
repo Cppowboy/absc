@@ -34,5 +34,5 @@ def collate(data):
 
 def get_loader(filename, batch_size):
     dataset = SemEval2014(filename)
-    dataloader = DataLoader(dataset, batch_size, shuffle=True, num_workers=4, collate_fn=collate)
+    dataloader = DataLoader(dataset, batch_size, shuffle=True, collate_fn=collate)
     return dataloader

@@ -45,9 +45,11 @@ class Embedding(nn.Module):
         return w
 
     def init_emb(self, mat):
-        num, dim = mat.shape
-        emb = nn.Embedding(num, dim)
-        emb.weight = nn.Parameter(torch.from_numpy(mat).float())
+        #num, dim = mat.shape
+        #emb = nn.Embedding(num, dim)
+        #emb.weight = nn.Parameter(torch.from_numpy(mat).float(), requires_grad=False)
+        mat = torch.FloatTensor(mat)
+        emb = nn.Embedding.from_pretrained(mat, freeze=True)
         return emb
 
 

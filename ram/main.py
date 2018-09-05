@@ -48,7 +48,8 @@ def train(config):
     wordemb = np.loadtxt(os.path.join(data_dir, config.wordmat_file))
     # init model
     model = RAM(dim_word=config.dim_word, dim_hidden=config.dim_hidden, dim_episode=config.dim_episode,
-                num_layer=config.num_layer, num_class=config.num_class, wordmat=wordemb, device=device)
+                num_layer=config.num_layer, num_class=config.num_class, wordmat=wordemb,
+                dropout_rate=config.dropout_rate, device=device)
     # model = TNet(dim_word=config.dim_word, dim_hidden=config.dim_hidden,
     #              kernel_size=config.kernel_size, num_channel=config.conv_channel,
     #              num_class=config.num_class, cpt_num=config.cpt_num, word_mat=wordemb, dropout_rate=config.dropout_rate,
@@ -147,7 +148,8 @@ def test(config):
     # charemb = np.loadtxt(os.path.join(data_dir, config.charmat_file))
     # init model
     model = RAM(dim_word=config.dim_word, dim_hidden=config.dim_hidden, dim_episode=config.dim_episode,
-                num_layer=config.num_layer, num_class=config.num_class, wordmat=wordemb, device=device)
+                num_layer=config.num_layer, num_class=config.num_class, wordmat=wordemb,
+                dropout_rate=config.dropout_rate, device=device)
     # model = TNet(dim_word=config.dim_word, dim_hidden=config.dim_hidden,
     #              kernel_size=config.kernel_size, num_channel=config.conv_channel,
     #              num_class=config.num_class, cpt_num=config.cpt_num, word_mat=wordemb, dropout_rate=config.dropout_rate,

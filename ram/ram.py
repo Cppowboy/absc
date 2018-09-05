@@ -37,8 +37,8 @@ class RAM(nn.Module):
         e = torch.zeros(batch, self.dim_episode).to(self.device)  # batch, dim_episode
         for _ in range(self.num_layer):
             g = self.att_linear(
-                torch.cat([m, torch.zeros(batch, length, self.dim_episode) + e.unsqueeze(1),
-                           torch.zeros(batch, length, self.dim_word) + aspect.unsqueeze(1)],
+                torch.cat([m, torch.zeros(batch, length, self.dim_episode).to(self.device) + e.unsqueeze(1),
+                           torch.zeros(batch, length, self.dim_word).to(self.device) + aspect.unsqueeze(1)],
                           dim=-1))  # batch, length, 1
             alpha = F.softmax(g, dim=1)
             i = torch.bmm(alpha.transpose(1, 2), m).squeeze()  # batch, 2 * dim_hidden

@@ -21,9 +21,9 @@ def read_term(fname, wordcounter, charcounter):
             txt = sentence.find('text').text.lower().strip()
             aspects = sentence.find('aspectTerms')
             for aspect in aspects.findall('aspectTerm'):
-                a = aspect.get('term').lower().strip()
-                if '/' in a:
-                    a = a.split('/')[-1]
+                a = aspect.get('term').lower().rstrip()
+                # if '/' in a:
+                #     a = a.split('/')[-1]
                 p = aspect.get('polarity')
                 f = int(aspect.get('from'))
                 t = int(aspect.get('to'))

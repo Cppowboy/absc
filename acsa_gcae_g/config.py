@@ -6,10 +6,10 @@ import os
 flags.DEFINE_string('model', 'acsa_gcae_g', 'acsaa gcae with gate model')
 # data input files
 flags.DEFINE_string('dataset', 'lap', 'the dataset to use for train and test, lap/res/res_cat')
-flags.DEFINE_string('laptop_train_xml', 'data/laptop/Laptops_Train.xml', 'laptop dataset, train xml file path')
+flags.DEFINE_string('laptop_train_xml', 'data/laptop/Laptops_Train_v2.xml', 'laptop dataset, train xml file path')
 flags.DEFINE_string('laptop_test_xml', 'data/laptop/Laptops_Test_Gold.xml',
                     'laptop dataset, test gold xml file path')
-flags.DEFINE_string('restaurant_train_xml', 'data/restaurant/Restaurants_Train.xml',
+flags.DEFINE_string('restaurant_train_xml', 'data/restaurant/Restaurants_Train_v2.xml',
                     'restaurant dataset, train xml file path')
 flags.DEFINE_string('restaurant_test_xml', 'data/restaurant/Restaurants_Test_Gold.xml',
                     'restaurant dataset, test gold xml file path')

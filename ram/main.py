@@ -56,7 +56,7 @@ def train(config):
     #              device=device)
     model = model.to(device)
     # init loss
-    cross_entropy = nn.CrossEntropyLoss()
+    cross_entropy = nn.CrossEntropyLoss(weight=config.class_weight)
     # train
     # summary writer
     writer = SummaryWriter('logs/%s/%s/%s' % (config.dataset, config.model, config.timestr))

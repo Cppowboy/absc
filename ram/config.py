@@ -47,6 +47,7 @@ flags.DEFINE_integer('dim_episode', 200, 'episode vector dimension')
 flags.DEFINE_integer('num_layer', 2, 'number of attention layer')
 flags.DEFINE_integer('C', 40, 'C constant to calculate the position weights')
 flags.DEFINE_integer('num_class', 3, 'number of classes')
+flags.DEFINE_list('class_weight', [3, 1, 3], 'class weight for loss')
 # params
 flags.DEFINE_string('mode', 'train', 'run prepro/train/test')
 config = flags.FLAGS

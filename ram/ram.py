@@ -14,7 +14,7 @@ class RAM(nn.Module):
         self.device = device
         self.wordemb = self.init_emb(wordmat)
         self.dropout = nn.Dropout(dropout_rate)
-        self.encoder = nn.LSTM(dim_word, dim_hidden, bidirectional=True, bias=True)
+        self.encoder = nn.LSTM(dim_word, dim_hidden, bidirectional=True, bias=True, batch_first=True)
         self.att_linear = nn.Linear(dim_hidden * 2 + 1 + dim_episode + dim_word, 1)
         self.grucell = nn.GRUCell(dim_hidden * 2, dim_episode)
         self.output_linear = nn.Linear(dim_episode, num_class)

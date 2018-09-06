@@ -74,7 +74,7 @@ def train(config):
         save_fout = open(os.path.join(result_dir, '{}.txt'.format(epoch)), 'w')
         model.train()
         for i, batch_data in tqdm(enumerate(train_data)):
-            model.zero_grad()
+            optim.zero_grad()
             sent_ids, lens, aspect_ids, aspect_lens, polarity, pws = batch_data
             sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
                 device), pws.to(device)

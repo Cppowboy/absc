@@ -6,7 +6,7 @@ import os
 flags.DEFINE_string('model', 'ram', 'ram model')
 # data input files
 flags.DEFINE_string('dataset', 'lap', 'the dataset to use for train and test, lap/res/res_cat')
-flags.DEFINE_string('laptop_train_xml', 'data/laptop/Laptops_Train_v2.xml', 'laptop dataset, train xml file path')
+flags.DEFINE_string('laptop_train_xml', 'data/laptop/Laptop_Train_v2.xml', 'laptop dataset, train xml file path')
 flags.DEFINE_string('laptop_test_xml', 'data/laptop/Laptops_Test_Gold.xml',
                     'laptop dataset, test gold xml file path')
 flags.DEFINE_string('restaurant_train_xml', 'data/restaurant/Restaurants_Train_v2.xml',

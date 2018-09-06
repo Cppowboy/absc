@@ -44,7 +44,7 @@ class RAM(nn.Module):
                            position_weights.unsqueeze(2)],
                           dim=-1))  # batch, length, 1
             alpha = F.softmax(g, dim=1)
-            i = torch.bmm(alpha.transpose(1, 2), m).squeeze()  # batch, 2 * dim_hidden
+            i = torch.bmm(alpha.transpose(1, 2), m).squeeze(1)  # batch, 2 * dim_hidden
             e = self.grucell(i, e)
         logit = self.output_linear(e)
         return logit

@@ -14,23 +14,26 @@ class MemNet(nn.Module):
         self.W = nn.Linear(dim_word, dim_word)
         self.output = nn.Linear(dim_word, num_class)
 
-    def forward(self, sent_ids, aspect_ids, position_weights):
+    def forward(self, sent_ids, aspect_ids, sent_lens, aspect_lens, position_weights):
         '''
         :param sent_ids: batch, l1
         :param aspect_ids: batch, l2
+        :param sent_lens: batch
+        :param aspect_lens: batch
         :param position_weights: batch, l1
         :return:
         '''
         sent_x = self.wordemb(sent_ids)  # batch, l1, dim_word
         aspect_x = self.wordemb(aspect_ids)  # batch, l2, dim_word
-        vec = torch.mean(aspect_x, 1)  # batch, dim_word
+        vec = torch.sum(aspect_x, 1) / aspect_lens.unsqueeze(-1).float()  # batch, dim_word
         m = sent_x * position_weights.unsqueeze(-1)  # batch, l1, dim_word
         for _ in range(self.num_hop):
             alpha = F.tanh(
                 self.Watt(torch.cat([m, vec.unsqueeze(1) + torch.zeros_like(m).to(m.device)], -1)))  # batch, l1, 1
             alpha = F.softmax(alpha, 1)
-            vec = torch.bmm(alpha.transpose(1, 2), m)  # batch, 1, dim_word
-            vec = self.W(vec.squeeze(1))  # batch, dim_word
+            out = torch.bmm(alpha.transpose(1, 2), m)  # batch, 1, dim_word
+            out = out.squeeze(1)  # batch, dim_word
+            vec = self.W(vec) + out  # batch, dim_word
         logit = self.output(vec)  # batch, num_class
         return logit
 

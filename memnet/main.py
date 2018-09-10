@@ -73,7 +73,8 @@ def train(config):
             sent_ids, lens, aspect_ids, aspect_lens, polarity, pws = batch_data
             sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
                 device), pws.to(device)
-            logit = model(sent_ids, aspect_ids, pws)
+            lens, aspect_lens = lens.to(device), aspect_lens.to(device)
+            logit = model(sent_ids, aspect_ids, lens, aspect_lens, pws)
             save(sent_ids.tolist(), lens.tolist(), aspect_ids.tolist(), aspect_lens.tolist(), polarity.tolist(),
                  logit.tolist(), save_fout, config)
             loss = cross_entropy(logit, polarity)
@@ -89,7 +90,8 @@ def train(config):
             sent_ids, lens, aspect_ids, aspect_lens, polarity, pws = batch_data
             sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
                 device), pws.to(device)
-            logit = model(sent_ids, aspect_ids, pws)
+            lens, aspect_lens = lens.to(device), aspect_lens.to(device)
+            logit = model(sent_ids, aspect_ids, lens, aspect_lens, pws)
             # loss = cross_entropy(logit, polarity)
             logit_list.append(logit.cpu().data.numpy())
             rating_list.append(polarity.cpu().data.numpy())
@@ -107,7 +109,8 @@ def train(config):
             sent_ids, lens, aspect_ids, aspect_lens, polarity, pws = batch_data
             sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
                 device), pws.to(device)
-            logit = model(sent_ids, aspect_ids, pws)
+            lens, aspect_lens = lens.to(device), aspect_lens.to(device)
+            logit = model(sent_ids, aspect_ids, lens, aspect_lens, pws)
             # loss = cross_entropy(logit, polarity)
             logit_list.append(logit.cpu().data.numpy())
             rating_list.append(polarity.cpu().data.numpy())
@@ -160,7 +163,8 @@ def test(config):
         sent_ids, lens, aspect_ids, aspect_lens, polarity, pws = batch_data
         sent_ids, aspect_ids, polarity, pws = sent_ids.to(device), aspect_ids.to(device), polarity.to(
             device), pws.to(device)
-        logit = model(sent_ids, aspect_ids, pws)
+        lens, aspect_lens = lens.to(device), aspect_lens.to(device)
+        logit = model(sent_ids, aspect_ids, lens, aspect_lens, pws)
         save(sent_ids.tolist(), lens.tolist(), aspect_ids.tolist(), aspect_lens.tolist(), polarity.tolist(),
              logit.tolist(), save_fout, config)
         logit_list.append(logit.cpu().data.numpy())

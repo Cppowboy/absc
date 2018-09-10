@@ -35,7 +35,7 @@ flags.DEFINE_string('timestr', datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
 flags.DEFINE_string('device', 'cuda', 'which device to use, cuda or cpu')
 flags.DEFINE_integer('seed', int(1000 * time.time()), 'random seed')
 flags.DEFINE_string('optimizer', 'adam', 'which kind of optimizer to use')
-flags.DEFINE_float('lr', 0.0002, 'initial learning rate')
+flags.DEFINE_float('lr', 0.001, 'initial learning rate')
 flags.DEFINE_float('weight_decay', 0, 'weigth decay')
 flags.DEFINE_integer('max_epoch', 50, 'max train epoch')
 flags.DEFINE_integer('batch', 32, 'batch size value')

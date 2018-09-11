@@ -62,7 +62,7 @@ def train(config):
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     parameters = filter(lambda p: p.requires_grad, model.parameters())
-    optim = torch.optim.Adam(parameters, lr=config.lr, weight_decay=config.weight_decay)
+    optim = torch.optim.Adagrad(parameters, lr=config.lr, weight_decay=config.weight_decay)
     best_acc = 0.0
     for epoch in tqdm(range(config.max_epoch)):
         # train

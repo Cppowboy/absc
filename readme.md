@@ -25,12 +25,13 @@ python -m lstm.main --mode test
 
 | Models | Restaurant_category | Restaurant | Laptop |
 | ------ | :-----------: | -----:| -----: |
-| lstm | 82.73 | 75.00 | 66.93 |
-| atae_lstm | 83.86 | 78.39 | 69.75 |
-| acsa_gcae | 82.53 | 78.84 | 71.63 |
-| bilstm_att_g | - | 80.39 | 73.09 |
-| acsa_gcae_g | - | 79.85 | 73.58 |
-| tnet | - | 80.17 | 77.04 |
+| lstm | - | - | - |
+| atae_lstm | - | 77.86/65.59 | 68.34/62.64 |
+| acsa_gcae | - | 78.12/65.59 | 70.85/64.66 |
+| bilstm_att_g | - | 76.34/63.65 | 69.91/63.20 |
+| acsa_gcae_g | - | - | - |
+| ram | - | 78.66/66.66 | 73.82/68.80 |
+| tnet | - | 78.93/63.65 | 72.57/65.13 |
 
 ## Direcotory
 

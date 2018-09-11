@@ -124,26 +124,26 @@ def _get_word(token, word2id):
         return word2id[unknown]
 
 
-def calulate_position_weights(k, m, n, length, C):
+def calulate_position_weights(k, m, n, length, dim_word):
     '''
-    calculate position weights, v[i] = 1 - l[i] / n
-    :param k:
-    :param m:
-    :param n:
-    :param length:
-    :param C:
+    :param k: start of the target
+    :param m: length of the target
+    :param n: length of the sentence
+    :param length: max length of sentence, sent_limit
+    :param dim_word: dimension of word vector
     :return:
     '''
     weights = []
     for i in range(length):
+        l = abs(k - i)
         if i < n:
-            weights.append(1 - (i) / n)
+            weights.append(1 - l / 40)
         else:
             weights.append(0)
     return weights
 
 
-def prepro_term(xml_file_train, xml_file_test, word_limit, sent_limit, aspect_limit, embedding_file, C=40):
+def prepro_term(xml_file_train, xml_file_test, word_limit, sent_limit, aspect_limit, embedding_file, dim_word):
     '''
     tnet prepro
     :param xml_file_train:
@@ -179,7 +179,7 @@ def prepro_term(xml_file_train, xml_file_test, word_limit, sent_limit, aspect_li
         k = len(item['left_tokens'])
         m = len(item['aspect_tokens'])
         n = len(item['sent_tokens'])
-        position_weight = calulate_position_weights(k, m, n, sent_limit, C)
+        position_weight = calulate_position_weights(k, m, n, sent_limit, dim_word)
         train_data.append({
             'sent_ids': sent_ids.tolist(),
             'len': min(len(sent_tokens), sent_limit),
@@ -210,7 +210,7 @@ def prepro_term(xml_file_train, xml_file_test, word_limit, sent_limit, aspect_li
         k = len(item['left_tokens'])
         m = len(item['aspect_tokens'])
         n = len(item['sent_tokens'])
-        position_weight = calulate_position_weights(k, m, n, sent_limit, C)
+        position_weight = calulate_position_weights(k, m, n, sent_limit, dim_word)
         test_data.append({
             'sent_ids': sent_ids.tolist(),
             'len': min(len(sent_tokens), sent_limit),
@@ -238,11 +238,11 @@ def prepro(config):
     if config.dataset == 'res':
         train_data, train_examples, test_data, test_examples, word2id, wordmat = \
             prepro_term(config.restaurant_train_xml, config.restaurant_test_xml, config.word_limit,
-                        config.sent_limit, config.aspect_limit, config.glove_file, config.C)
+                        config.sent_limit, config.aspect_limit, config.glove_file, config.dim_word)
     elif config.dataset == 'lap':
         train_data, train_examples, test_data, test_examples, word2id, wordmat = \
             prepro_term(config.laptop_train_xml, config.laptop_test_xml, config.word_limit,
-                        config.sent_limit, config.aspect_limit, config.glove_file, config.C)
+                        config.sent_limit, config.aspect_limit, config.glove_file, config.dim_word)
     else:
         raise Exception('unknown dataset')
     data_dir = os.path.join(config.model, config.dataset)

@@ -99,7 +99,7 @@ def load_embedding(emb_fname, word2id, target2id):
     print('loading word embedding file {}'.format(emb_fname))
     dic = {}
     target_dic = {}
-    emb_file = open(emb_fname, 'r')
+    emb_file = open(emb_fname, 'r', encoding='utf-8')
     for line in tqdm(emb_file):
         try:
             parts = line.strip().split(' ')

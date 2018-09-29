@@ -1,10 +1,10 @@
-from atae_lstm.preproc import prepro
-from atae_lstm.atae_lstm import ABSA_Atae_Lstm
-from atae_lstm.basic import get_score
-from atae_lstm.dataset import get_loader
-from atae_lstm.config import config
+from seq.preproc import prepro
+from seq.seq import Sequence
+from seq.basic import get_score
+from seq.dataset import get_loader
+from seq.config import config
 import torch
-import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from tensorboardX import SummaryWriter
 from absl import app
@@ -13,33 +13,24 @@ from tqdm import tqdm
 import json
 
 
-def save(sent_ids, lens, aspect_id, polarity, logits, fout, config):
-    def parse_sent(ids, l, dic):
+def save(context_ids, context_label, aspect_pos, polarity, y, fout, config):
+    def parse_sent(ids, dic):
         token_list = []
-        for i in range(l):
-            if ids[i] in dic:
-                token_list.append(dic[ids[i]])
+        for i in ids:
+            if i in dic:
+                token_list.append(dic[i])
             else:
                 token_list.append(dic[0])
         return ' '.join(token_list)
 
-    def parse_aspect(id, dic):
-        if id in dic:
-            return dic[id]
-        else:
-            return '<UNK>'
-
     polarity_list = ['negative', 'neutral', 'positive']
     data_dir = os.path.join(config.model, config.dataset)
     word2id = json.load(open(os.path.join(data_dir, config.word2id_file), 'r'))
-    target2id = json.load(open(os.path.join(data_dir, config.target2id_file), 'r'))
     id2word = {v: k for k, v in word2id.items()}
-    id2target = {v: k for k, v in target2id.items()}
-    for sid, l, aid, p, logit in zip(sent_ids, lens, aspect_id, polarity, logits):
-        print(parse_sent(sid, l, id2word), file=fout)
-        print(parse_aspect(aid, id2target), file=fout)
+    for cid, cl, ap, p, yy in zip(context_ids, context_label, aspect_pos, polarity, y):
+        print(parse_sent(cid, id2word), file=fout)
         print(polarity_list[p], file=fout)
-        print(['{}:{}'.format(t, p) for t, p in zip(polarity_list, logit)], file=fout)
+        print(['{}:{}'.format(t, p) for t, p in zip(polarity_list, yy)], file=fout)
 
 
 def train(config):
@@ -54,31 +45,42 @@ def train(config):
     train_data = get_loader(train_fname, config.batch)
     test_data = get_loader(test_fname, config.batch)
     wordemb = np.loadtxt(os.path.join(data_dir, config.wordmat_file))
-    targetemb = np.loadtxt(os.path.join(data_dir, config.targetmat_file))
     # init model
-    model = ABSA_Atae_Lstm(dim_word=config.dim_word, dim_hidden=config.dim_hidden, num_classification=config.num_class,
-                           maxlen=config.sent_limit, wordemb=wordemb, targetemb=targetemb, device=device)
-    model = model.to(device)
-    # init loss
-    cross_entropy = nn.CrossEntropyLoss()
+    model = Sequence(dim_word=config.dim_word, dim_hidden=config.dim_hidden, num_class=config.num_class,
+                     wordmat=wordemb, device=device).to(device)
     # train
     # summary writer
     writer = SummaryWriter('logs/%s/%s/%s' % (config.dataset, config.model, config.timestr))
     model_save_dir = os.path.join(config.model_save, config.dataset, config.model)
     if not os.path.exists(model_save_dir):
         os.makedirs(model_save_dir)
-    optim = torch.optim.Adagrad(model.parameters(), lr=config.lr)
+    result_dir = os.path.join(config.result_save, config.dataset, config.model, 'train')
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    parameters = filter(lambda p: p.requires_grad, model.parameters())
+    optim = torch.optim.Adam(parameters, lr=config.lr, weight_decay=config.weight_decay)
     best_acc = 0.0
     for epoch in tqdm(range(config.max_epoch)):
         # train
+        save_fout = open(os.path.join(result_dir, '{}.txt'.format(epoch)), 'w')
         model.train()
-        for batch_data in tqdm(train_data):
+        for i, batch_data in tqdm(enumerate(train_data)):
             model.zero_grad()
-            sent_ids, aspect_id, polarity, lens = batch_data
-            sent_ids, aspect_id, polarity, lens = sent_ids.to(device), aspect_id.to(device), \
-                                                  polarity.to(device), lens.to(device)
-            logit = model(sent_ids, aspect_id, lens)
-            loss = cross_entropy(logit, polarity)
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = batch_data
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = context_ids.to(device), \
+                                                                            context_label.to(device), \
+                                                                            aspect_mask.to(device), \
+                                                                            aspect_pos.to(device), \
+                                                                            polarity.to(device)
+            loss1, y = model(context_ids, context_label, aspect_mask, aspect_pos)
+            save(context_ids.tolist(), context_label.tolist(), aspect_pos.tolist(), polarity.tolist(),
+                 y.tolist(), save_fout, config)
+            loss2 = F.cross_entropy(y, polarity)
+            writer.add_scalar('loss1', loss1, len(train_data) * epoch + i)
+            writer.add_scalar('loss2', loss2, len(train_data) * epoch + i)
+            lambdaa = 0.9
+            loss = loss1 * lambdaa + loss2 * (1.0 - lambdaa)
+            # print(loss1, loss2, loss)
             loss.backward()
             optim.step()
         # eval
@@ -87,12 +89,15 @@ def train(config):
         logit_list = []
         rating_list = []
         for batch_data in tqdm(train_data):
-            sent_ids, aspect_id, polarity, lens = batch_data
-            sent_ids, aspect_id, polarity, lens = sent_ids.to(device), aspect_id.to(device), \
-                                                  polarity.to(device), lens.to(device)
-            logit = model(sent_ids, aspect_id, lens)
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = batch_data
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = context_ids.to(device), \
+                                                                            context_label.to(device), \
+                                                                            aspect_mask.to(device), \
+                                                                            aspect_pos.to(device), \
+                                                                            polarity.to(device)
+            loss1, y = model(context_ids, context_label, aspect_mask, aspect_pos)
             # loss = cross_entropy(logit, polarity)
-            logit_list.append(logit.cpu().data.numpy())
+            logit_list.append(y.cpu().data.numpy())
             rating_list.append(polarity.cpu().data.numpy())
         train_acc, train_precision, train_recall, train_f1 = get_score(np.concatenate(logit_list, 0),
                                                                        np.concatenate(rating_list, 0))
@@ -105,12 +110,15 @@ def train(config):
         logit_list = []
         rating_list = []
         for batch_data in tqdm(test_data):
-            sent_ids, aspect_id, polarity, lens = batch_data
-            sent_ids, aspect_id, polarity, lens = sent_ids.to(device), aspect_id.to(device), \
-                                                  polarity.to(device), lens.to(device)
-            logit = model(sent_ids, aspect_id, lens)
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = batch_data
+            context_ids, context_label, aspect_mask, aspect_pos, polarity = context_ids.to(device), \
+                                                                            context_label.to(device), \
+                                                                            aspect_mask.to(device), \
+                                                                            aspect_pos.to(device), \
+                                                                            polarity.to(device)
+            loss1, y = model(context_ids, context_label, aspect_mask, aspect_pos)
             # loss = cross_entropy(logit, polarity)
-            logit_list.append(logit.cpu().data.numpy())
+            logit_list.append(y.cpu().data.numpy())
             rating_list.append(polarity.cpu().data.numpy())
         test_acc, test_precision, test_recall, test_f1 = get_score(np.concatenate(logit_list, 0),
                                                                    np.concatenate(rating_list, 0))
@@ -141,10 +149,10 @@ def test(config):
     test_fname = os.path.join(data_dir, config.test_data)
     test_data = get_loader(test_fname, config.batch)
     wordemb = np.loadtxt(os.path.join(data_dir, config.wordmat_file))
-    targetemb = np.loadtxt(os.path.join(data_dir, config.targetmat_file))
+    # charemb = np.loadtxt(os.path.join(data_dir, config.charmat_file))
     # init model
-    model = ABSA_Atae_Lstm(dim_word=config.dim_word, dim_hidden=config.dim_hidden, num_classification=config.num_class,
-                           maxlen=config.sent_limit, wordemb=wordemb, targetemb=targetemb, device=device)
+    model = Sequence(dim_word=config.dim_word, dim_hidden=config.dim_hidden, num_class=config.num_class,
+                     wordmat=wordemb, device=device).to(device)
     # load model
     model_save_dir = os.path.join(config.model_save, config.dataset, config.model)
     result_dir = os.path.join(config.result_save, config.dataset, config.model, 'test')
@@ -158,17 +166,20 @@ def test(config):
     logit_list = []
     rating_list = []
     for batch_data in tqdm(test_data):
-        sent_ids, aspect_id, polarity, lens = batch_data
-        sent_ids, aspect_id, polarity, lens = sent_ids.to(device), aspect_id.to(device), \
-                                              polarity.to(device), lens.to(device)
-        logit = model(sent_ids, aspect_id, lens)
-        save(sent_ids.tolist(), lens.tolist(), aspect_id.tolist(), polarity.tolist(),
-             logit.tolist(), save_fout, config)
-        logit_list.append(logit.cpu().data.numpy())
+        context_ids, context_label, aspect_mask, aspect_pos, polarity = batch_data
+        context_ids, context_label, aspect_mask, aspect_pos, polarity = context_ids.to(device), \
+                                                                        context_label.to(device), \
+                                                                        aspect_mask.to(device), \
+                                                                        aspect_pos.to(device), \
+                                                                        polarity.to(device)
+        loss1, y = model(context_ids, context_label, aspect_mask, aspect_pos)
+        save(context_ids.tolist(), context_label.tolist(), aspect_pos.tolist(), polarity.tolist(),
+             y.tolist(), save_fout, config)
+        logit_list.append(y.cpu().data.numpy())
         rating_list.append(polarity.cpu().data.numpy())
     test_acc, test_precision, test_recall, test_f1 = get_score(np.concatenate(logit_list, 0),
                                                                np.concatenate(rating_list, 0))
-    print(' test_acc=%.4f, test_precision=%.4f, test_recall=%.4f, test_f1=%.4f' %
+    print('test_acc=%.4f, test_precision=%.4f, test_recall=%.4f, test_f1=%.4f' %
           (test_acc, test_precision, test_recall, test_f1))
 
 

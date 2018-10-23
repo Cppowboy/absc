@@ -5,7 +5,7 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, precision_recall_fscore_support
 from sklearn.utils import shuffle
 
 # from transformer.analysis import rocstories as rocstories_analysis
@@ -100,12 +100,10 @@ def log(save_dir, desc):
     va_acc = accuracy_score(vaY, np.argmax(va_logits, 1)) * 100.
     logger.log(n_epochs=n_epochs, n_updates=n_updates, tr_cost=tr_cost, va_cost=va_cost, tr_acc=tr_acc, va_acc=va_acc)
     print('%d %d %.3f %.3f %.2f %.2f' % (n_epochs, n_updates, tr_cost, va_cost, tr_acc, va_acc))
-    if submit:
-        score = va_acc
-        if score > best_score:
-            best_score = score
-            path = os.path.join(save_dir, desc, 'best_params')
-            torch.save(dh_model.state_dict(), make_path(path))
+    print('Train:')
+    print(precision_recall_fscore_support(trY[:n_valid], np.argmax(tr_logits, 1), average='macro'))
+    print('Val:')
+    print(precision_recall_fscore_support(vaY, np.argmax(va_logits, 1), average='macro'))
 
 
 def predict(dataset, submission_dir):
@@ -158,7 +156,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str)
     parser.add_argument('--log_dir', type=str, default='log/')
     parser.add_argument('--save_dir', type=str, default='save/')
-    parser.add_argument('--data_dir', type=str, default='../data/laptop')
+    parser.add_argument('--data_dir', type=str, default='data/restaurant')
+    # parser.add_argument('--data_dir', type=str, default='data/laptop')
     parser.add_argument('--submission_dir', type=str, default='submission/')
     parser.add_argument('--analysis', action='store_true')
     parser.add_argument('--seed', type=int, default=42)
@@ -180,8 +179,8 @@ if __name__ == '__main__':
     parser.add_argument('--opt', type=str, default='adam')
     parser.add_argument('--afn', type=str, default='gelu')
     parser.add_argument('--lr_schedule', type=str, default='warmup_linear')
-    parser.add_argument('--encoder_path', type=str, default='model/encoder_bpe_40000.json')
-    parser.add_argument('--bpe_path', type=str, default='model/vocab_40000.bpe')
+    parser.add_argument('--encoder_path', type=str, default='transformer/model/encoder_bpe_40000.json')
+    parser.add_argument('--bpe_path', type=str, default='transformer/model/vocab_40000.bpe')
     parser.add_argument('--n_transfer', type=int, default=12)
     parser.add_argument('--lm_coef', type=float, default=0.5)
     parser.add_argument('--b1', type=float, default=0.9)
@@ -256,7 +255,7 @@ if __name__ == '__main__':
                                                  criterion,
                                                  args.lm_coef,
                                                  model_opt)
-    load_openai_pretrained_model(dh_model.transformer, n_ctx=n_ctx, n_special=n_special)
+    load_openai_pretrained_model(dh_model.transformer, n_ctx=n_ctx, n_special=n_special, path='transformer/model/')
 
     dh_model.to(device)
     dh_model = nn.DataParallel(dh_model)

@@ -56,7 +56,8 @@ def train(config):
     #              device=device)
     model = model.to(device)
     # init loss
-    cross_entropy = nn.CrossEntropyLoss(weight=torch.from_numpy(np.array(config.class_weight)).float())
+    # cross_entropy = nn.CrossEntropyLoss(weight=torch.from_numpy(np.array(config.class_weight)).float())
+    cross_entropy = nn.CrossEntropyLoss()
     # train
     # summary writer
     writer = SummaryWriter('logs/%s/%s/%s' % (config.dataset, config.model, config.timestr))

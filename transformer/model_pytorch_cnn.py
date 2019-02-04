@@ -226,21 +226,24 @@ class ClfHead(nn.Module):
         self.n_embd = cfg.n_embd
         self.clf_token = clf_token
         self.dropout = nn.Dropout(cfg.clf_pdrop)
-        self.linear = nn.Linear(100, n_class)
 
-        nn.init.normal_(self.linear.weight, std = 0.02)
-        nn.init.normal_(self.linear.bias, 0)
-
-        self.conv = nn.Conv1d(self.n_embd, 100, 3)
-        nn.init.normal_(self.conv.weight, std = 0.02)
-        nn.init.normal_(self.conv.bias, std = 0.02)
+        channel = 100
+        kernel_sizes = [1, 2, 3, 4, 5]
+        self.linear = nn.Linear(channel*len(kernel_sizes), n_class)
+        nn.init.normal_(self.linear.weight, std=0.02)
+        nn.init.normal_(self.linear.bias, std=0.02)
+        self.conv_list = nn.ModuleList([nn.Conv1d(self.n_embd, channel, k) for k in kernel_sizes])
+        for conv in self.conv_list:
+            nn.init.normal_(conv.weight, std=0.02)
+            nn.init.normal_(conv.bias, std=0.02)
 
     def forward(self, h, x):
         # clf_h = h.view(-1, self.n_embd)
         # flat = x[..., 0].contiguous().view(-1)
         # clf_h = clf_h[flat == self.clf_token, :]
-        clf_h = F.relu(self.conv(h.transpose(1, 2)))
-        clf_h = F.max_pool1d(clf_h, clf_h.size(2)).squeeze(-1)
+        clf_h = [F.relu(conv(h.transpose(1, 2))) for conv in self.conv_list]
+        clf_h = [F.max_pool1d(k, k.size(2)).squeeze(-1) for k in clf_h]
+        clf_h = torch.cat(clf_h, -1)
         clf_h = self.dropout(clf_h)
         clf_logits = self.linear(clf_h)
 

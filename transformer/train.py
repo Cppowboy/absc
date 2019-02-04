@@ -10,7 +10,7 @@ from sklearn.utils import shuffle
 
 # from transformer.analysis import rocstories as rocstories_analysis
 from transformer.datasets import semeval
-from transformer.model_pytorch import DoubleHeadModel, load_openai_pretrained_model
+from transformer.model_pytorch_cnn import DoubleHeadModel, load_openai_pretrained_model
 from transformer.opt import OpenAIAdam
 from transformer.text_utils import TextEncoder
 from transformer.utils import (encode_dataset, iter_data,
@@ -156,8 +156,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str)
     parser.add_argument('--log_dir', type=str, default='log/')
     parser.add_argument('--save_dir', type=str, default='save/')
-    parser.add_argument('--data_dir', type=str, default='data/restaurant')
-    # parser.add_argument('--data_dir', type=str, default='data/laptop')
+    # parser.add_argument('--data_dir', type=str, default='data/restaurant')
+    parser.add_argument('--data_dir', type=str, default='data/laptop')
     parser.add_argument('--submission_dir', type=str, default='submission/')
     parser.add_argument('--analysis', action='store_true')
     parser.add_argument('--seed', type=int, default=42)

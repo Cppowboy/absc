@@ -72,7 +72,7 @@ def train(config):
     best_acc = 0.0
     for epoch in tqdm(range(config.max_epoch)):
         # train
-        save_fout = open(os.path.join(result_dir, '{}.txt'.format(epoch)), 'w')
+        save_fout = open(os.path.join(result_dir, '{}.txt'.format(epoch)), 'w', encoding='utf-8')
         model.train()
         for i, batch_data in tqdm(enumerate(train_data)):
             optim.zero_grad()
@@ -160,7 +160,7 @@ def test(config):
     result_dir = os.path.join(config.result_save, config.dataset, config.model, 'test')
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
-    save_fout = open(os.path.join(result_dir, 'best.txt'), 'w')
+    save_fout = open(os.path.join(result_dir, 'best.txt'), 'w', encoding='utf-8')
     model.load_state_dict(torch.load(os.path.join(model_save_dir, 'best.pth')))
     model = model.to(device)
     model.eval()

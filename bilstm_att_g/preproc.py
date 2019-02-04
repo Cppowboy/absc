@@ -71,7 +71,7 @@ def load_embedding(emb_fname, word2id, target2id):
     print('loading word embedding file {}'.format(emb_fname))
     dic = {}
     target_dic = {}
-    emb_file = open(emb_fname, 'r')
+    emb_file = open(emb_fname, 'r', encoding='utf-8')
     for line in tqdm(emb_file):
         try:
             parts = line.strip().split(' ')
@@ -237,6 +237,14 @@ def prepro(config):
             config.word_limit,
             config.sent_limit,
             config.glove_file)
+    elif config.dataset == 'twitter':
+        train_data, train_examples, test_data, test_examples, word2id, target2id, wordmat, targetmat = prepro_seperate(
+            config.twitter_train_xml,
+            config.twitter_test_xml,
+            config.word_limit, 
+            config.sent_limit,
+            config.glove_file
+            )
     else:
         raise Exception('unknown dataset')
     data_dir = os.path.join(config.model, config.dataset)

@@ -238,6 +238,10 @@ def prepro(config):
         train_data, train_examples, test_data, test_examples, word2id, wordmat = \
             prepro_term(config.laptop_train_xml, config.laptop_test_xml, config.word_limit,
                         config.sent_limit, config.aspect_limit, config.glove_file, config.C)
+    elif config.dataset == 'twitter':
+        train_data, train_examples, test_data, test_examples, word2id, wordmat = \
+            prepro_term(config.twitter_train_xml, config.twitter_test_xml, config.word_limit, 
+                       config.sent_limit, config.aspect_limit, config.glove_file, config.C)
     else:
         raise Exception('unknown dataset')
     data_dir = os.path.join(config.model, config.dataset)

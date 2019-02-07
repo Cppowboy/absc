@@ -99,8 +99,10 @@ def _semeval(fname):
 
 
 def semeval(data_dir):
-    sents, aspects, labels = _semeval(os.path.join(data_dir, 'Laptops_Train_v2.xml'))
+    # sents, aspects, labels = _semeval(os.path.join(data_dir, 'Laptops_Train_v2.xml'))
+    sents, aspects, labels = _semeval(os.path.join(data_dir, 'train.xml'))
     # sents, aspects, labels = _semeval(os.path.join(data_dir, 'Restaurants_Train_v2.xml'))
-    va_sents, va_aspects, va_labels = _semeval(os.path.join(data_dir, 'Laptops_Test_Gold.xml'))
+    # va_sents, va_aspects, va_labels = _semeval(os.path.join(data_dir, 'Laptops_Test_Gold.xml'))
+    va_sents, va_aspects, va_labels = _semeval(os.path.join(data_dir, 'test.xml'))
     # va_sents, va_aspects, va_labels = _semeval(os.path.join(data_dir, 'Restaurants_Test_Gold.xml'))
     return (sents, aspects, labels), (va_sents, va_aspects, va_labels)

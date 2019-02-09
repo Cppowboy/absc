@@ -31,6 +31,7 @@ flags.DEFINE_integer('sent_limit', 30, 'max length of sentence')
 # save params
 flags.DEFINE_string('log_save', 'logs', 'save the events in this directory')
 flags.DEFINE_string('model_save', 'ckt', 'save the models in this directory')
+flags.DEFINE_string('result_save', 'result', 'save the models in this directory')
 flags.DEFINE_string('timestr', datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
                     'time str of current time, %Y%m%d%H%M%S')
 # train params

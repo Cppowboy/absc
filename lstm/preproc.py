@@ -279,6 +279,13 @@ def prepro(config):
             config.word_limit,
             config.sent_limit,
             config.glove_file)
+    elif config.dataset == 'stock':
+        train_data, train_examples, test_data, test_examples, word2id, target2id, wordmat, targetmat = prepro_cat(
+            config.stock_train_xml,
+            config.stock_test_xml,
+            config.word_limit,
+            config.sent_limit,
+            config.glove_file)
     elif config.dataset == 'res':
         train_data, train_examples, test_data, test_examples, word2id, target2id, wordmat, targetmat = prepro_term(
             config.restaurant_train_xml,

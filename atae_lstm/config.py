@@ -15,6 +15,8 @@ flags.DEFINE_string('restaurant_test_xml', 'data/restaurant/Restaurants_Test_Gol
                     'restaurant dataset, test gold xml file path')
 flags.DEFINE_string('twitter_train_xml', 'data/twitter/train.xml', '')
 flags.DEFINE_string('twitter_test_xml', 'data/twitter/test.xml', '')
+flags.DEFINE_string('stock_train_xml', 'data/senti-stock/middle-train.xml', '')
+flags.DEFINE_string('stock_test_xml', 'data/senti-stock/middle-test.xml', '')
 flags.DEFINE_string('glove_file', 'data/glove/glove.840B.300d.txt', 'glove embedding file path')
 # data output files
 flags.DEFINE_string('train_data', 'train.json', 'save train examples in this file')

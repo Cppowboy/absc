@@ -28,7 +28,7 @@ def train(config):
     # init model
     model = Hair(kernel_size=config.kernel_size, num_channel=config.num_channel, dim_middle=config.dim_middle,
                  num_concept=config.num_concept, dim_concept=config.dim_concept, num_classification=config.num_class,
-                 maxlen=config.sent_limit, dim_word=config.dim_word, wordemb=wordemb, targetemb=targetemb)
+                 maxlen=config.sent_limit, dim_word=config.dim_word, dropout_rate=config.dropout_rate, wordemb=wordemb, targetemb=targetemb)
 
     model = model.to(device)
     # init loss
@@ -121,7 +121,7 @@ def test(config):
     # init model
     model = Hair(kernel_size=config.kernel_size, num_channel=config.num_channel, dim_middle=config.dim_middle,
                  num_concept=config.num_concept, dim_concept=config.dim_concept, num_classification=config.num_class,
-                 maxlen=config.sent_limit, dim_word=config.dim_word, wordemb=wordemb, targetemb=targetemb)
+                 maxlen=config.sent_limit, dim_word=config.dim_word, dropout_rate=config.dropout_rate, wordemb=wordemb, targetemb=targetemb)
     # load model
     model_save_dir = os.path.join(
         config.model_save, config.dataset, config.model)

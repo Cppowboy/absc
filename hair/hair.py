@@ -49,13 +49,13 @@ class Hair(nn.Module):
         self.emb_matrix = self.init_emb(wordemb)
         self.target_matrix = self.init_emb(targetemb)
         self.concept_matrix = nn.Parameter(torch.tensor(
-            np.random.uniform(size=[num_concept, dim_concept]), dtype=torch.float32))
-        self.conv = nn.Conv1d(dim_word, num_channel, kernel_size)
-        self.concept_att = Attention(num_channel, dim_concept, dim_middle)
-        self.target_att = Attention(num_channel, dim_word, dim_middle)
+            np.random.uniform(size=[num_concept, dim_concept]), dtype=torch.float32, requires_grad=True))
+        self.kernel_sizes = [3, 4, 5]
+        self.conv_list = nn.ModuleList([nn.Conv1d(dim_word, num_channel, k) for k in self.kernel_sizes])
+        # self.conv = nn.Conv1d(dim_word, num_channel, kernel_size)
         self.dropout = nn.Dropout(dropout_rate)
-        self.linear = nn.Linear(num_channel*2, num_classification, True)
-        self.linear1 = nn.Linear(dim_word, num_channel)
+        self.linear = nn.Linear(num_channel * len(self.kernel_sizes), num_classification, True)
+        self.stock_linear = nn.Linear(dim_word, num_channel, True)
 
     def forward(self, sent, target, lens):
         '''
@@ -66,19 +66,15 @@ class Hair(nn.Module):
         # batch = sent.shape[0]
         x = self.emb_matrix(sent).view(
             sent.shape[0], sent.shape[1], -1)  # batch * maxlen * dim_word
-        target_x = self.target_matrix(target).view(
-            target.shape[0], -1)  # batch * dim_word
-        h = F.tanh(self.conv(x.transpose(1, 2))).transpose(
-            1, 2)  # batch, len, num_channel
-        sc = self.concept_att(self.concept_matrix, h, h, 'concept')
-        r = self.target_att(target_x, sc, sc, 'target')
+        target_x = self.target_matrix(target).view(target.shape[0], -1)  # batch * dim_word
+        stock_coefficient = torch.tanh(self.stock_linear(target_x))
+        h = [F.relu(conv(x.transpose(1, 2))) for conv in self.conv_list]  # batch, num_channel, len
+        r = [F.max_pool1d(a, a.size(2)).squeeze(2) * stock_coefficient for a in h]
+        r = torch.cat(r, -1)
         r = self.dropout(r)
-        r = torch.cat([r, torch.tanh(self.linear1(target_x))], -1)
         logit = self.linear(r)
         return logit
 
     def init_emb(self, embedding):
-        num_word, dim_word = embedding.shape
-        emb_matrix = nn.Embedding(num_word, dim_word)
-        emb_matrix.weight = nn.Parameter(torch.from_numpy(embedding).float())
+        emb_matrix = nn.Embedding.from_pretrained(torch.FloatTensor(embedding), freeze=False)
         return emb_matrix

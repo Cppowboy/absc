@@ -45,12 +45,12 @@ flags.DEFINE_integer('batch', 25, 'batch size value')
 flags.DEFINE_float('dropout_rate', 0.2, 'dropout rate')
 # model params
 flags.DEFINE_integer('dim_word', 300, 'word embedding dimension')
-flags.DEFINE_integer('num_channel', 500, 'output channel number of conv')
+flags.DEFINE_integer('num_channel', 100, 'output channel number of conv')
 flags.DEFINE_integer('kernel_size', 3, 'kernel size of conv')
 flags.DEFINE_integer('num_class', 3, 'number of classes')
-flags.DEFINE_integer('num_concept', 200, 'number of implicit concepts')
-flags.DEFINE_integer('dim_concept', 500, 'dimension of implicit concept representation')
-flags.DEFINE_integer('dim_middle', 500, 'dimension of middle representation for attention layer')
+flags.DEFINE_integer('num_concept', 15, 'number of implicit concepts')
+flags.DEFINE_integer('dim_concept', 100, 'dimension of implicit concept representation')
+flags.DEFINE_integer('dim_middle', 100, 'dimension of middle representation for attention layer')
 
 # params
 flags.DEFINE_string('mode', 'train', 'run prepro/train/test')

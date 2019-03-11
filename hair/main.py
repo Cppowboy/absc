@@ -10,7 +10,35 @@ from tensorboardX import SummaryWriter
 from absl import app
 import os
 from tqdm import tqdm
+import json
 
+def save(sent_ids, lens, aspect_id, polarity, logits, fout, config):
+    def parse_sent(ids, l, dic):
+        token_list = []
+        for i in range(l):
+            if ids[i] in dic:
+                token_list.append(dic[ids[i]])
+            else:
+                token_list.append(dic[0])
+        return ' '.join(token_list)
+
+    def parse_aspect(id, dic):
+        if id in dic:
+            return dic[id]
+        else:
+            return '<UNK>'
+
+    polarity_list = ['negative', 'neutral', 'positive']
+    data_dir = os.path.join(config.model, config.dataset)
+    word2id = json.load(open(os.path.join(data_dir, config.word2id_file), 'r'))
+    target2id = json.load(open(os.path.join(data_dir, config.target2id_file), 'r'))
+    id2word = {v: k for k, v in word2id.items()}
+    id2target = {v: k for k, v in target2id.items()}
+    for sid, l, aid, p, logit in zip(sent_ids, lens, aspect_id, polarity, logits):
+        print(parse_sent(sid, l, id2word), file=fout)
+        print(parse_aspect(aid, id2target), file=fout)
+        print(polarity_list[p], file=fout)
+        print(['{}:{}'.format(t, p) for t, p in zip(polarity_list, logit)], file=fout)
 
 def train(config):
     device = torch.device(config.device)
@@ -123,6 +151,11 @@ def test(config):
                  num_concept=config.num_concept, dim_concept=config.dim_concept, num_classification=config.num_class,
                  maxlen=config.sent_limit, dim_word=config.dim_word, dropout_rate=config.dropout_rate, wordemb=wordemb, targetemb=targetemb)
     # load model
+    result_save_dir = os.path.join(config.result_save, config.dataset, config.model, 'test')
+    if not os.path.exists(result_save_dir):
+        os.makedirs(result_save_dir)
+    result_file = os.path.join(result_save_dir, 'best.txt')
+    save_fout = open(result_file, 'w', encoding='utf-8')
     model_save_dir = os.path.join(
         config.model_save, config.dataset, config.model)
     model.load_state_dict(torch.load(os.path.join(model_save_dir, 'best.pth')))
@@ -138,6 +171,7 @@ def test(config):
         logit = model(sent_ids, aspect_id, lens)
         logit_list.append(logit.cpu().data.numpy())
         rating_list.append(polarity.cpu().data.numpy())
+        save(sent_ids.tolist(), lens.tolist(), aspect_id.tolist(), polarity.tolist(), logit.tolist(), save_fout, config)
     test_acc, test_precision, test_recall, test_f1 = get_score(np.concatenate(logit_list, 0),
                                                                np.concatenate(rating_list, 0))
     print(' test_acc=%.4f, test_precision=%.4f, test_recall=%.4f, test_f1=%.4f' %
